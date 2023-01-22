@@ -1,12 +1,17 @@
 # Singing Voice Conversion
 
-This repository is to release the baselines of Singing Voice Conversion (SVC) task. To know more about SVC, you can read [this tutorial](https://www.zhangxueyao.com/data/SVC/tutorial.html). 
+This repository is to release the baselines of Singing Voice Conversion (SVC) task. To know more about SVC, you can read [this tutorial](https://www.zhangxueyao.com/data/SVC/tutorial.html).
 
 Now, it contains one model: WORLD-based SVC.
 
 ## Dataset
 
-TBD
+We adopt two public datasets, Opencpop [1] and M4Singer [2], to conduct **many-to-one** singing voice conversion. Specifically, we consider [Opencpop](https://wenet.org.cn/opencpop/) (which is a single singer dataset) as target singer and use [M4Singer](https://github.com/M4Singer/M4Singer) (which is a 20-singer dataset) as source singers.
+
+You can download the datasets by onedrive: [[Opencpop]](https://cuhko365-my.sharepoint.com/:f:/g/personal/222042021_link_cuhk_edu_cn/EkA6sscoSVhOnArHjmPiujkBeRhZZjL31gSpxmzday0WHA?e=36RoKe) [[M4Singer]](https://cuhko365-my.sharepoint.com/:f:/g/personal/222042021_link_cuhk_edu_cn/EjhvMImgtcdKgDHmlReEGyMB_LEDHc8Z520n1VeyYxZ8Jw?e=ILi5k4).
+
+> [1] Yu Wang, et al. Opencpop: A High-Quality Open Source Chinese Popular Song Corpus for Singing Voice Synthesis. InterSpeech 2022.
+> [2] Lichao Zhang, et al. M4Singer: a Multi-Style, Multi-Singer and Musical Score Provided Mandarin Singing Corpus. NeurIPS 2022.
 
 ## WORLD-based SVC
 
@@ -22,24 +27,60 @@ As the figure above shows, there are two main modules of it, *Content Extractor*
 
 We can utilize the following two stages to conduct **any-to-one** conversion:
 
-1. **Acoustics Mapping Training** (Training Stage): This stage is to train the mapping from the textual content features (eg: PPG) to the target singer's acoustic features (eg: SP or MCEP). During this stage, we utilize the last layer encoder's output of [Whisper](https://github.com/openai/whisper) as the content features (which is 1024d). We use a 6-layer Transformer to train the mapping from whisper features to 40d MCEP features.
+1. **Acoustics Mapping Training** (Training Stage): This stage is to train the mapping from the textual content features (eg: PPG) to the target singer's acoustic features (eg: SP or MCEP).
 2. **Inference and Conversion** (Conversion Stage): Given any source singer's audio, firstly, extract its content features including F0, AP, and textual content features. Then, use the model of training stage to infer the converted acoustic features (SP or MCEP). Finally, given F0, AP, and the converted SP, we utilize WORLD as vocoder to synthesis the converted audio.
 
 ### Requirements
 
-TBD
+```
+pip install torchaudio==0.13.1
+pip install tqdm
+```
+
+### Dataset Preprocess
+
+After you download the datasets, you need to modify the path configuration in `config.py`:
+
+```python
+# Please configure the path of your downloaded datasets
+dataset2path = {"Opencpop": "[Your Opencpop path]",
+    "M4Singer": "[Your M4Singer path]"}
+
+# Please configure the path to save your data
+data_path = "[Your data path]"
+```
+
+#### Opencpop
+
+Transform the original Opencpop transcriptions to JSON format:
+
+```
+cd preprocess
+python process_opencpop.py
+```
+
+#### M4Singer
+
+Select some utterance samples that will be converted. We randomly sample 5 utterances for every singer:
+
+```
+python process_m4singer.py
+```
 
 ### Acoustic Mapping Training (Training Stage)
 
-To write a overview
+During training stage, we aim to train a mapping from textual content features to the target singer's acoustic features. In the implementation: (1) For input, we utilize the last layer encoder's output of [Whisper](https://github.com/openai/whisper) as the content features (which is 1024d). (2) For output, we use 40d MCEP features. (3) For acoustic model, we adopt a 6-layer Transformer.
 
 #### Input: Whisper Features
 
-TBD
+```
+cd preprocess
+git clone https://github.com/openai/whisper.git
+```
 
 #### Output: MCEP Features
 
-TBD
+which has been extracted by [PyWORLD](https://github.com/JeremyCCHsu/Python-Wrapper-for-World-Vocoder) and then transformed
 
 #### Training and Evaluation
 

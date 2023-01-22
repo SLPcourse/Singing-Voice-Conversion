@@ -1,0 +1,9 @@
+*ipynb_checkpoints*
+**pycache**
+
+preprocess/whisper
+
+*.log
+*.pt
+*.wav
+*events.out.tfevents*
