@@ -11,6 +11,7 @@ We adopt two public datasets, Opencpop [1] and M4Singer [2], to conduct **many-t
 You can download the datasets by onedrive: [[Opencpop]](https://cuhko365-my.sharepoint.com/:f:/g/personal/222042021_link_cuhk_edu_cn/EkA6sscoSVhOnArHjmPiujkBeRhZZjL31gSpxmzday0WHA?e=36RoKe) [[M4Singer]](https://cuhko365-my.sharepoint.com/:f:/g/personal/222042021_link_cuhk_edu_cn/EjhvMImgtcdKgDHmlReEGyMB_LEDHc8Z520n1VeyYxZ8Jw?e=ILi5k4).
 
 > [1] Yu Wang, et al. Opencpop: A High-Quality Open Source Chinese Popular Song Corpus for Singing Voice Synthesis. InterSpeech 2022.
+>
 > [2] Lichao Zhang, et al. M4Singer: a Multi-Style, Multi-Singer and Musical Score Provided Mandarin Singing Corpus. NeurIPS 2022.
 
 ## WORLD-based SVC
@@ -33,7 +34,10 @@ We can utilize the following two stages to conduct **any-to-one** conversion:
 ### Requirements
 
 ```
+pip install torch==1.13.1
 pip install torchaudio==0.13.1
+pip install pyworld==0.3.2
+pip install diffsptk==0.5.0
 pip install tqdm
 ```
 
@@ -64,23 +68,34 @@ python process_opencpop.py
 Select some utterance samples that will be converted. We randomly sample 5 utterances for every singer:
 
 ```
+cd preprocess
 python process_m4singer.py
 ```
 
 ### Acoustic Mapping Training (Training Stage)
 
-During training stage, we aim to train a mapping from textual content features to the target singer's acoustic features. In the implementation: (1) For input, we utilize the last layer encoder's output of [Whisper](https://github.com/openai/whisper) as the content features (which is 1024d). (2) For output, we use 40d MCEP features. (3) For acoustic model, we adopt a 6-layer Transformer.
+During training stage, we aim to train a mapping from textual content features to the target singer's acoustic features. In the implementation: (1) For output, we use 40d MCEP features as ground truth. (2) For input, we utilize the last layer encoder's output of [Whisper](https://github.com/openai/whisper) as the content features (which is 1024d). (3) For acoustic model, we adopt a 6-layer Transformer.
+
+#### Output: MCEP Features
+
+To obtain MCEP features, first we adopt [PyWORLD](https://github.com/JeremyCCHsu/Python-Wrapper-for-World-Vocoder) to extract spectrum envelope (SP) features, and then transform SP to MCEP by using [diffsptk](https://github.com/sp-nitech/diffsptk):
+
+```
+cd preprocess
+python extract_mcep.py
+```
+
+For hyparameters, we use 44100 Hz sampling rate and 10 ms frame shift.
 
 #### Input: Whisper Features
+
+To extract whisper features, we utilze the pretrained [multilingual models](https://github.com/openai/whisper#available-models-and-languages) of Whisper (specifically, `medium` model):
 
 ```
 cd preprocess
 git clone https://github.com/openai/whisper.git
+python extract_whisper.py
 ```
-
-#### Output: MCEP Features
-
-which has been extracted by [PyWORLD](https://github.com/JeremyCCHsu/Python-Wrapper-for-World-Vocoder) and then transformed
 
 #### Training and Evaluation
 
