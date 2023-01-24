@@ -5,7 +5,7 @@ from collections import defaultdict
 import sys
 
 sys.path.append("../")
-from config import data_path, dataset2path
+from config import data_path, dataset2path, NUMS_OF_SINGER
 
 
 def m4singer_statistics():
@@ -42,7 +42,6 @@ if __name__ == "__main__":
     singer2songs = m4singer_statistics()
 
     # We select 5 utterances randomly for every singer
-    NUMS_OF_SINGER = 5
     test = []
     for singer, songs in singer2songs.items():
         song_names = list(songs.keys())
