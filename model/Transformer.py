@@ -1,7 +1,6 @@
 import math
 import torch
 from torch import nn, Tensor
-import torch.nn.functional as F
 from torch.nn import TransformerEncoder, TransformerEncoderLayer
 
 
@@ -17,19 +16,8 @@ class Transformer(nn.Module):
         nlayers = self.args.transformer_nlayers
         output_dim = self.args.output_dim
 
-        if self.args.input == "ppg":
-            # num of phonemes vocab + padding idx
-            ntoken = self.args.phonemes_num + 1
-            d_model = self.args.transformer_d_model
-
-            self.padding_value = self.args.phonemes_num
-            self.embedding = nn.Embedding(
-                ntoken, d_model, padding_idx=self.padding_value
-            )
-
-        if self.args.input == "whisper":
-            self.padding_value = 0
-            d_model = self.args.whisper_dim
+        self.padding_value = 0
+        d_model = self.args.whisper_dim
 
         self.pos_encoder = PositionalEncoding(d_model, dropout)
         encoder_layers = TransformerEncoderLayer(
@@ -39,18 +27,15 @@ class Transformer(nn.Module):
 
         self.mlp = nn.Linear(d_model, output_dim)
 
-    def encode(self, ppg):
+    def encode(self, whisper):
         """
         Args:
-            ppg: Tensor, shape [real_ppg_len]
+            whisper: Tensor, shape [real_whisper_len]
         Returns:
             input: Tensor, shape [seq_len]
             mask: Tensor, shape [seq_len]
         """
-        if self.args.input in ["ppg", "ppg_whisper"]:
-            input = torch.zeros(self.seq_len, device=self.args.device, dtype=torch.long)
-        elif self.args.input == "whisper":
-            input = torch.zeros(
+        input = torch.zeros(
                 (self.seq_len, self.args.whisper_dim),
                 device=self.args.device,
                 dtype=torch.float,
@@ -58,9 +43,9 @@ class Transformer(nn.Module):
 
         mask = torch.ones(self.seq_len, device=self.args.device, dtype=torch.long)
 
-        ppg = ppg[: self.seq_len]
-        input[: len(ppg)] = torch.as_tensor(ppg, device=self.args.device)
-        padding_len = self.seq_len - len(ppg)
+        whisper = whisper[: self.seq_len]
+        input[: len(whisper)] = torch.as_tensor(whisper, device=self.args.device)
+        padding_len = self.seq_len - len(whisper)
 
         if padding_len > 0:
             input[-padding_len:] = self.padding_value
@@ -77,25 +62,6 @@ class Transformer(nn.Module):
             output: Tensor, shape [batch_size, seq_len, output_dim]
             masks: Tensor, shape [batch_size, seq_len, 1]
         """
-        if self.args.input == "whisper":
-            return self.forward_whisper(idxs, dataset)
-
-        inputs = [self.encode(dataset.ppg[idx.item()]) for idx in idxs]
-
-        # (bs, seq_len)
-        input_ids = torch.stack([i[0] for i in inputs])
-        # (bs, seq_len, 1)
-        masks = torch.stack([i[1] for i in inputs])[:, :, None]
-
-        # (bs, seq_len, d_model)
-        emb = self.embedding(input_ids) * math.sqrt(self.d_model)
-        src = self.pos_encoder(emb)
-        output = self.transformer_encoder(src)
-        # (bs, seq_len, output_dim)
-        output = self.mlp(output)
-        return output, masks
-
-    def forward_whisper(self, idxs, dataset):
         inputs = [self.encode(dataset.whisper[idx.item()]) for idx in idxs]
 
         # (bs, seq_len, whisper_dim)

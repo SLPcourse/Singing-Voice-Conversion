@@ -7,9 +7,10 @@ dataset2path = {
     "M4Singer": "/mntnfs/lee_data1/zhangxueyao/dataset/M4Singer",
 }
 
-# Please configure the path to save your data and model
-data_path = "/mntnfs/lee_data1/zhangxueyao/Public/Singing-Voice-Conversion/preprocess"
-model_path = "/mntnfs/lee_data1/zhangxueyao/Public/Singing-Voice-Conversion/model"
+# Please configure the root path to save your data and model
+root_path = "/mntnfs/lee_data1/zhangxueyao/Public/Singing-Voice-Conversion"
+data_path = os.path.join(root_path, "preprocess")
+model_path = os.path.join(root_path, "model")
 
 # Wav files path
 dataset2wavpath = {

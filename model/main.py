@@ -8,9 +8,8 @@ import numpy as np
 
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
-from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
-from torch.optim import AdamW, Adam
+from torch.utils.data import DataLoader
+from torch.optim import Adam
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from torch.utils.tensorboard import SummaryWriter
 
@@ -20,7 +19,7 @@ sys.path.append("../")
 from config import model_path, parser
 from evaluate import evaluate, compute_loss
 
-from infer.inference import save_pred_audios_in_training
+from inference import save_pred_audios_in_training
 
 from DatasetLoader import DatasetLoader
 from Transformer import Transformer
@@ -62,9 +61,6 @@ if __name__ == "__main__":
     torch.multiprocessing.set_start_method("spawn")
 
     args = parser.parse_args()
-    if args.input == "":
-        print("Please config args.input")
-        exit()
 
     # Experiment name
     if args.debug:
@@ -72,13 +68,10 @@ if __name__ == "__main__":
     else:
         is_training = "lr_{}".format(args.lr) if not args.evaluate else "eval"
         is_conversing = "" if not args.converse else "conversion"
-        is_noise_debug = "" if not args.noise_debug else "noise_debug"
         experiment_keys = [
-            args.input,
             args.model,
             is_training,
             is_conversing,
-            is_noise_debug,
         ]
         experiment_keys = [s for s in experiment_keys if s != ""]
         experiment_name = "_".join(experiment_keys)
@@ -112,16 +105,14 @@ if __name__ == "__main__":
     logging.info("Loading data...")
     start = time.time()
 
-    if args.dataset in ["Opencpop", "OpencpopBeta"]:
+    if not args.converse:
         train_dataset = DatasetLoader(args, "train")
-
         train_loader = DataLoader(
             train_dataset,
             batch_size=args.batch_size,
             shuffle=True,
             drop_last=False,
         )
-
         # Shuffle=False
         train_eval_loader = DataLoader(
             train_dataset,
@@ -131,7 +122,6 @@ if __name__ == "__main__":
         )
 
     test_dataset = DatasetLoader(args, "test")
-
     # Shuffle=False
     test_loader = DataLoader(
         test_dataset,
@@ -147,7 +137,6 @@ if __name__ == "__main__":
     model = eval("{}(args)".format(args.model))
 
     criterion = nn.MSELoss(reduction="none")
-    # optimizer = AdamW(filter(lambda p: p.requires_grad, model.parameters()), lr=args.lr)
     optimizer = Adam(model.parameters(), lr=args.lr)
     scheduler = ReduceLROnPlateau(
         optimizer, mode="min", factor=0.5, patience=10, min_lr=1e-7, verbose=True
@@ -195,7 +184,7 @@ if __name__ == "__main__":
         )
         np.save(test_y_pred_file, test_y_pred)
 
-        if args.dataset in ['Opencpop', 'OpencpopBeta']:
+        if not args.converse:
             train_eval_loss, train_y_pred, train_y_pred_file = evaluate(
                 args, train_eval_loader, model, criterion, "train"
             )
@@ -224,16 +213,13 @@ if __name__ == "__main__":
         train_loss = 0.0
 
         lr = optimizer.param_groups[0]["lr"]
-        # print_step = int(len(train_loader) / 10)
         print_step = 10
         for step, (idxs, y_gt, y_masks) in enumerate(tqdm(train_loader)):
-            # y_gt: (bs, seq, sp_dim)
+            # y_gt: (bs, seq, output_dim)
             # y_masks: (bs, seq, 1)
             # y_pred: (bs, seq, output_dim)
             # masks: (bs, seq, 1)
             y_pred, masks = model(idxs, train_dataset)
-
-            # y_gt = y_gt.float().to(args.device)
 
             loss = compute_loss(criterion, y_pred, y_gt, masks * y_masks)
 

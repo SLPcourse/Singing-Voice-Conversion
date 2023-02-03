@@ -2,15 +2,15 @@ from tqdm import tqdm
 import os
 import numpy as np
 import pickle
-import librosa
-import matplotlib.pyplot as plt
+from argparse import ArgumentParser
 import sys
 
-sys.path.append("/home/zhangxueyao/SVC/")
-from preprocess import extract_sp, extract_mcep
+sys.path.append("../")
+sys.path.append("../preprocess")
 from inference import get_uids, save_audio
-
-data_dir = "/mntnfs/lee_data1/zhangxueyao/SVC/preprocess"
+from config import dataset2wavpath
+import extract_sp
+import extract_mcep
 
 
 def converse_base_f0(target_singer_f0_file, ratio=0.25):
@@ -28,30 +28,19 @@ def get_pred_audios(
     model_file,
     source_dataset,
     dataset_type,
-    target_singer_f0_file=None,
-    conversion_dir=None,
+    target_singer_f0_file,
+    inference_dir,
 ):
-    if source_dataset == "Opencpop":
-        wave_dir = "/mntnfs/lee_data1/zhangxueyao/dataset/Opencpop/segments/wavs"
-    if source_dataset == "OpencpopBeta":
-        wave_dir = "/mntnfs/lee_data1/zhangxueyao/dataset/OpencpopBeta/utt_wavs"
-    if source_dataset == "M4Singer":
-        wave_dir = "/mntnfs/lee_data1/zhangxueyao/dataset/M4Singer"
-
+    wave_dir = dataset2wavpath[source_dataset]
     paths = model_file.split("/")
     epoch = paths[-1].split(".")[0]
 
-    if source_dataset == "OpencpopBeta":
-        pred_dir = "/".join(paths[:-1])
-    else:
-        pred_dir = conversion_dir
-
-    output_dir = os.path.join(pred_dir, "{}_{}".format(dataset_type, epoch))
+    output_dir = os.path.join(inference_dir, "{}_{}".format(dataset_type, epoch))
     if os.path.exists(output_dir):
         os.system("rm -r {}".format(output_dir))
     os.makedirs(output_dir)
 
-    pred_file = os.path.join(pred_dir, "{}_{}.npy".format(dataset_type, epoch))
+    pred_file = os.path.join(inference_dir, "{}_{}.npy".format(dataset_type, epoch))
     # (dataset_sz, seq_len, MCEP_dim)
     pred = np.load(pred_file)
     print("File: {},\n Shape: {}\n".format(pred_file, pred.shape))
@@ -104,18 +93,27 @@ def get_pred_audios(
         save_audio(world_pred_file, y_pred, fs)
         # save WORLD synthesis pred (f0 transposed)
         world_pred_trans_file = os.path.join(
-            output_dir, "{}_pred_trans.wav".format(uid)
+            output_dir, "{}_pred_f0trans.wav".format(uid)
         )
         save_audio(world_pred_trans_file, y_pred_trans, fs)
 
 
 if __name__ == "__main__":
-    model_file = "/mntnfs/lee_data1/zhangxueyao/SVC/model/ckpts/Opencpop/whisper_Transformer_lr_0.0001/118.pt"
-    # get_pred_audios(model_file, "OpencpopBeta", "test")
+    parser = ArgumentParser(description="Conversion for M4Singer")
+    parser.add_argument("--source_dataset", type=str, default="M4Singer")
+    parser.add_argument("--dataset_type", type=str, default="test")
+    parser.add_argument(
+        "--model_file", type=str, help="the checkpoint file of acoustic mapping model"
+    )
+    parser.add_argument("--target_singer_f0_file", type=str)
+    parser.add_argument("--inference_dir", type=str)
+
+    args = parser.parse_args()
+
     get_pred_audios(
-        model_file,
-        source_dataset="M4Singer",
-        dataset_type="test",
-        target_singer_f0_file="/mntnfs/lee_data1/zhangxueyao/SVC/preprocess/Opencpop/F0/test_f0.pkl",
-        conversion_dir="/mntnfs/lee_data1/zhangxueyao/SVC/model/ckpts/M4Singer/whisper_Transformer_eval_conversion",
+        args.model_file,
+        args.source_dataset,
+        args.dataset_type,
+        args.target_singer_f0_file,
+        args.inference_dir,
     )

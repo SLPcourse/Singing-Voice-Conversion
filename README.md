@@ -50,8 +50,8 @@ After you download the datasets, you need to modify the path configuration in `c
 dataset2path = {"Opencpop": "[Your Opencpop path]",
     "M4Singer": "[Your M4Singer path]"}
 
-# Please configure the path to save your data
-data_path = "[Your data path]"
+# Please configure the root path to save your data and model
+root_path = "[Root path for saving data and model]"
 ```
 
 #### Opencpop
@@ -99,12 +99,23 @@ python extract_whisper.py
 
 #### Training and Evaluation
 
-TBD
+```
+cd model
+sh run_training.sh
+```
 
 ### Inference and Conversion (Conversion Stage)
 
-TBD
+#### Inference
 
-## License
+```
+cd model
+sh run_inference.sh
+```
 
-TBD
+#### Conversion
+
+```
+cd model
+sh run_converse.sh
+```

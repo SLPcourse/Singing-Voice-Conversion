@@ -77,9 +77,9 @@ def extract_whisper_features(dataset, dataset_type, batch_size=80):
     while end <= len(audio_paths):
         start = end
         end = start + batch_size
+        print("{}/{}...".format(min(len(audio_paths), end), len(audio_paths)))
 
         whisper_features[start:end] = whisper_encoder(audio_paths[start:end])
-        print("{}/{}, Done.".format(min(len(audio_paths), end), len(audio_paths)))
 
     # Mapping to mcep's lengths
     print("\nTransform to mapped features...")
