@@ -104,9 +104,13 @@ cd model
 sh run_training.sh
 ```
 
+During training, you can listen to the predicted audio samples in the folder `<root_path>/model/ckpts/Opencpop/<experiment_name>` at different loss levels. You could expect to listen samples of good intelligibility after 100 epochs.
+
 ### Inference and Conversion (Conversion Stage)
 
 #### Inference
+
+To obtain the infered MCEP features of M4Singer singers:
 
 ```
 cd model
@@ -114,6 +118,8 @@ sh run_inference.sh
 ```
 
 #### Conversion
+
+At last, synthesis the converted audios using WORLD:
 
 ```
 cd model
