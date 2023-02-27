@@ -107,7 +107,7 @@ python extract_whisper.py
 *Note: If you face `out of memory` errors, open `preprocess/extract_whisper.py` and go to line 55. You could try to reduce the default `batch_size` of `extract_whisper_features(dataset, dataset_type, batch_size=80)`. You could also go to line 99 to use a more suitable model.*
 
 #### Training and Evaluation
-*This step may cost some time. Relax and take a sleep* :)
+*This step may cost some time. Relax and take a sleep* :)  
 *If you are using Colab, you may need to reduce the total size of training data or divide 500 epoches into multiple runnings, due to the free time limit of Google Colab. See this [link](https://research.google.com/colaboratory/faq.html) for more info.* 
 ```bash
 cd model
