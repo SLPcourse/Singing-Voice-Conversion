@@ -108,6 +108,7 @@ python extract_whisper.py
 
 #### Training and Evaluation
 *This step may cost some time. Relax and take a sleep* :)
+*If you are using Colab, you may need to reduce the total size of training data or divide 500 epoches into multiple runnings, due to the free time limit of Google Colab. See this [link](https://research.google.com/colaboratory/faq.html) for more info.* 
 ```bash
 cd model
 sh run_training.sh
