@@ -1,4 +1,4 @@
-from whisper import whisper
+import whisper
 import torch
 import os
 import json
