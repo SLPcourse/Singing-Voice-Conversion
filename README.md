@@ -8,9 +8,6 @@ Now, it contains one model: WORLD-based SVC.
 
 We adopt two public datasets, Opencpop [1] and M4Singer [2], to conduct **many-to-one** singing voice conversion. Specifically, we consider [Opencpop](https://wenet.org.cn/opencpop/) (which is a single singer dataset) as target singer and use [M4Singer](https://github.com/M4Singer/M4Singer) (which is a 20-singer dataset) as source singers.
 
-You can download the datasets by onedrive: [[Opencpop]](https://cuhko365-my.sharepoint.com/:f:/g/personal/222042021_link_cuhk_edu_cn/EkA6sscoSVhOnArHjmPiujkBeRhZZjL31gSpxmzday0WHA?e=36RoKe) [[M4Singer]](https://cuhko365-my.sharepoint.com/:f:/g/personal/222042021_link_cuhk_edu_cn/EjhvMImgtcdKgDHmlReEGyMB_LEDHc8Z520n1VeyYxZ8Jw?e=ILi5k4).  
-Check this [post](https://github.com/orgs/SLPcourse/discussions/40) if you have problem in downloading.
-
 > [1] Yu Wang, et al. Opencpop: A High-Quality Open Source Chinese Popular Song Corpus for Singing Voice Synthesis. InterSpeech 2022.
 >
 > [2] Lichao Zhang, et al. M4Singer: a Multi-Style, Multi-Singer and Musical Score Provided Mandarin Singing Corpus. NeurIPS 2022.
